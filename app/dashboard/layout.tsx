@@ -5,7 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { ReactNode } from "react"; // Importer le type ReactNode pour typer les enfants
 import DashboardItems from "../components/dashboard/DashboardItems";
-import { DollarSign, Globe, Home } from "lucide-react";
+import { CircleUser, DollarSign, Globe, Home } from "lucide-react";
+import { ThemeToggle } from "../components/dashboard/ThemeToggle";
+import { DropdownMenu, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { DropdownMenuContent } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {LogoutLink} from '@kinde-oss/kinde-auth-nextjs/components';
 
 export const NavLinks = [ // ici on exporte les liens de navigation pour les utiliser dans d'autres composants comme DashboardItems.tsx, par exemple pour générer les éléments de la sidebar dynamiquement mais aussi pour centraliser la gestion des liens de navigation
     {
@@ -55,9 +61,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <header className="flex h-14 items-center gap-4 border-b bg-muted/40
             px-4 lg:h-[60px] lg:px-6">
                 <div className="ml-auto flex items-center gap-x-5">
-                     <h2 className="text-lg font-semibold">yooo</h2>
+                            <div className="flex items-center gap-3">
+                                <ThemeToggle />
+
+                                <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button 
+                                    variant="secondary" 
+                                    size="icon"
+                                    className="rounded-full"
+                                >
+                                    <CircleUser className="h-5 w-5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                    <LogoutLink> Log out </LogoutLink>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+
+                        </DropdownMenu>
+                    </div>
                 </div>
             </header>
+             <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                {children}
+             </main>
         </div>
 
     </section>

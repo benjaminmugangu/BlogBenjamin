@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ThemeProvider } from "./components/dashboard/theme-provider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,11 +25,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.className} ${geistMono.className} antialiased`}
-      >
-        {children}
+        className={`${geistSans.className} ${geistMono.className} antialiased`}>
+          {/* Small inline script to sync the initial theme (pre-hydration) with localStorage or prefers-color-scheme
+            This prevents hydration mismatches where the server HTML doesn't match the client-applied class on <html>. */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var key='theme';var theme=localStorage.getItem(key);if(!theme){var m=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');theme=m&&m.matches?'dark':'light'}if(theme==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light'}}catch(e){} })();`,
+            }}
+          />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
       </body>
     </html>
   );
