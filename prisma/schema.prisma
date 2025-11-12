@@ -5,9 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  provider = "prisma-client-js"
 }
+
 
 datasource db {
   provider = "postgresql"
@@ -17,7 +17,7 @@ datasource db {
 
 
 model User {
-  id          Int      @id @default(autoincrement())
+  id          String      @id 
   email       String   @unique
   firstname   String
   lastname    String
@@ -33,9 +33,11 @@ model Post {
   title     String
   content   String?
   author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
+  authorId  String
   createdAt DateTime @default(now())
 }
+
+
 
 
 
