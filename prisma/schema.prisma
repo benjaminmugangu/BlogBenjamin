@@ -78,12 +78,21 @@ model User {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
-  createdAt DateTime @default(now())
+  id               String   @id @default(uuid())
+  title            String
+  articleContent   Json
+  smallDescription String
+  image            String
+  slug             String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  site   Site @relation(fields: [siteId], references: [id])
+  siteId String
+
+  user   User @relation(fields: [userId], references: [id])
+  userId String
 }
 
 model Site {
@@ -98,6 +107,8 @@ model Site {
   imageUrl    String?
   user        User     @relation(fields: [userId], references: [id])
   userId      String   // obligatoire maintenant
+
+  posts       Post[]
 }
 
 

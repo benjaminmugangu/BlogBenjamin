@@ -1,3 +1,5 @@
+"use server";
+
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
@@ -5,7 +7,7 @@ import { sitesSchemas } from "./utils/zodSchemas";
 import prisma from "./utils/db";
 import { Prisma } from "@prisma/client"; // nécessaire pour le type unchecked
 
-export async function CreateSiteAction(formData: FormData) {
+export async function CreateSiteAction(prevState: unknown, formData: FormData) {
   // Récupération de l'utilisateur connecté
   const { getUser } = getKindeServerSession();
   const user = await getUser();
@@ -21,6 +23,20 @@ export async function CreateSiteAction(formData: FormData) {
 
   if (submission.status !== "success") {
     return submission.reply();
+  }
+
+  const existingSite = await prisma.site.findUnique({
+    where: {
+      subdirectory: submission.value.subdirectory,
+    },
+  });
+
+  if (existingSite) {
+    return submission.reply({
+      fieldErrors: {
+        subdirectory: ["This subdirectory is already taken. Please choose another one."],
+      },
+    });
   }
 
   // Création du site avec l'ID de l'utilisateur (unchecked)

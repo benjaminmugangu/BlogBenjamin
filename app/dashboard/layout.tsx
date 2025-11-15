@@ -7,10 +7,13 @@ import { ReactNode } from "react"; // Importer le type ReactNode pour typer les 
 import DashboardItems from "../components/dashboard/DashboardItems";
 import { CircleUser, DollarSign, Globe, Home } from "lucide-react";
 import { ThemeToggle } from "../components/dashboard/ThemeToggle";
-import { DropdownMenu, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuContent } from "@/components/ui/dropdown-menu";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {LogoutLink} from '@kinde-oss/kinde-auth-nextjs/components';
 
 export const NavLinks = [ // ici on exporte les liens de navigation pour les utiliser dans d'autres composants comme DashboardItems.tsx, par exemple pour générer les éléments de la sidebar dynamiquement mais aussi pour centraliser la gestion des liens de navigation
