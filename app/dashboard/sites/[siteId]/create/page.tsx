@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { postSchema } from "@/app/utils/zodSchemas";
 import { CreatePostAction } from "@/app/actions";
 import { UploadDropzone } from "@/app/utils/uploadthingComponents";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export default function ArticleCreationRoute() {
   const params = useParams<{ siteId: string }>();
@@ -36,25 +38,45 @@ export default function ArticleCreationRoute() {
     shouldRevalidate: "onInput",
   });
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  // Afficher les notifications toast pour les erreurs
+  useEffect(() => {
+    if (!lastResult) return;
+
+    // Vérifier si lastResult contient des erreurs (structure Conform)
+    const hasErrors = 
+      (lastResult && typeof lastResult === "object" && "error" in lastResult) ||
+      (lastResult && typeof lastResult === "object" && "status" in lastResult && lastResult.status === "error");
+
+    if (hasErrors) {
+      const error = "error" in lastResult ? (lastResult as { error?: { formErrors?: string[]; fieldErrors?: Record<string, string[]> } }).error : null;
+      const errorMessage = 
+        error?.formErrors?.[0] || 
+        (error?.fieldErrors ? Object.values(error.fieldErrors)[0]?.[0] : null) ||
+        "Failed to create article. Please try again.";
+      toast.error(errorMessage);
+    }
+  }, [lastResult]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
-    // Validation côté client avec Conform
+    // Validation côté client avant soumission
     const validation = parseWithZod(formData, {
       schema: postSchema,
     });
     
-    // Si validation réussit, on soumet avec loading
     if (validation.status === "success") {
-      startTransition(async () => {
-        await action(formData);
-      });
-    } else {
-      // Si validation échoue, on soumet quand même pour que Conform affiche les erreurs
-      // mais sans le loading (car c'est une erreur de validation instantanée)
-      await action(formData);
+      // Afficher le toast de succès avant la soumission
+      // (la redirection se fera après, mais le toast sera visible)
+      toast.success("Article created successfully!");
     }
+    
+    // Toujours utiliser startTransition pour appeler l'action
+    // (requis par useActionState - React 19+ requirement)
+    startTransition(async () => {
+      await action(formData);
+    });
   };
 
   return (
