@@ -1,14 +1,21 @@
-import { NavLinks } from "@/app/dashboard/layout";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LucideProps } from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
 
-export default function DashboardItems() {
+interface NavLink {
+    name: string;
+    href: string;
+    icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
+}
+
+export default function DashboardItems({ navLinks }: { navLinks: NavLink[] }) {
     const pathname = usePathname();
 
     return (
         <>
-            {NavLinks.map((item) => (
+            {navLinks.map((item) => (
                 <Link
                     href={item.href}
                     key={item.name}

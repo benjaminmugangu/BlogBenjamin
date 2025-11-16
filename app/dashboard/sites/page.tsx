@@ -56,7 +56,7 @@ export default async function SitesRoute() {
                 </div>
             ) : (
                 <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {sites.map((site) => (
+                    {sites.map((site: any) => (
                         <Card key={site.id}>
                             <CardHeader>
                                 <CardTitle>{site.name}</CardTitle>

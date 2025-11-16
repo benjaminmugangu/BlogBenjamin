@@ -20,7 +20,7 @@
 //   id          String      @id 
 //   email       String   @unique
 //   firstname   String
-//   lastname    String
+// *You seem to be using an outdated version of Cursor. Please upgrade to the latest version by [downloading Cursor again from our website](https://www.cursor.com/). All your settings will be preserved.*
 //   profileImage String?
 //   posts       Post[]   // relation
 //   createdAt   DateTime @default(now())

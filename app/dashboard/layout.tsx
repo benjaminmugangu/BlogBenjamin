@@ -16,27 +16,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {LogoutLink} from '@kinde-oss/kinde-auth-nextjs/components';
 
-export const NavLinks = [ // ici on exporte les liens de navigation pour les utiliser dans d'autres composants comme DashboardItems.tsx, par exemple pour générer les éléments de la sidebar dynamiquement mais aussi pour centraliser la gestion des liens de navigation
-    {
-        name: "Dashboard", // ici on définit le nom du lien de navigation, et ce sont ces objets qui seront mappés dans DashboardItems.tsx pour créer les liens de navigation
-        href: "/dashboard", // ici on définit le chemin du lien de navigation, ce lien pointe vers la page principale du dashboard, dans ce cas /dashboard
-        icon: Home, // ici on définit l'icône associée au lien de navigation
-    },
+export default function DashboardLayout({ children }: { children: ReactNode }) { 
+    const NavLinks = [
+        {
+            name: "Dashboard", 
+            href: "/dashboard", 
+            icon: Home, 
+        },
 
-    {
-        name: "Sites",
-        href: "/dashboard/sites",
-        icon: Globe,
-    },
+        {
+            name: "Sites",
+            href: "/dashboard/sites",
+            icon: Globe,
+        },
 
-    {
-        name: "Pricing",
-        href: "/dashboard/pricing",
-        icon: DollarSign,
-    }
-];
+        {
+            name: "Pricing",
+            href: "/dashboard/pricing",
+            icon: DollarSign,
+        }
+    ];
 
-export default function DashboardLayout({ children }: { children: ReactNode }) { // Typage des props, les props sont des enfants React qui seront rendus à l'intérieur du layout, et ils viennent des pages enfants exactement comme app/dashboard/page.tsx
     return (
        <section className="grid min-h-screen w-full md:grid-cols-[220px_1fr]
        lg:grid-cols-[280px_1fr]">
@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                 <div className="flex-1">
                     <nav className="grid items-start px-4 font-medium lg:px-4">
-                        <DashboardItems />
+                        <DashboardItems navLinks={NavLinks} />
                     </nav>
                 </div>
             </div>
