@@ -124,7 +124,7 @@ export default async function SiteRoute({
                   </tr>
                 </thead>
                 <tbody>
-                  {posts.map((post: any) => (
+                  {posts.map((post) => (
                     <tr key={post.id} className="border-b hover:bg-muted/50">
                       <td className="p-4">
                         <Image
