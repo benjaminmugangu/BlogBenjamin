@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useState } from "react";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 
@@ -17,14 +17,13 @@ import { postSchema } from "@/app/utils/zodSchemas";
 import { CreatePostAction } from "@/app/actions";
 import { UploadDropzone } from "@/app/utils/uploadthingComponents";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { SubmitButton } from "@/app/components/dashboard/SubmitButton";
 
 export default function ArticleCreationRoute() {
   const params = useParams<{ siteId: string }>();
   const siteId = params.siteId;
 
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
-  const [isPending, startTransition] = useTransition();
 
   const [lastResult, action] = useActionState(CreatePostAction, undefined);
   const [form, fields] = useForm({
@@ -37,47 +36,6 @@ export default function ArticleCreationRoute() {
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
   });
-
-  // Afficher les notifications toast pour les erreurs
-  useEffect(() => {
-    if (!lastResult) return;
-
-    // Vérifier si lastResult contient des erreurs (structure Conform)
-    const hasErrors = 
-      (lastResult && typeof lastResult === "object" && "error" in lastResult) ||
-      (lastResult && typeof lastResult === "object" && "status" in lastResult && lastResult.status === "error");
-
-    if (hasErrors) {
-      const error = "error" in lastResult ? (lastResult as { error?: { formErrors?: string[]; fieldErrors?: Record<string, string[]> } }).error : null;
-      const errorMessage = 
-        error?.formErrors?.[0] || 
-        (error?.fieldErrors ? Object.values(error.fieldErrors)[0]?.[0] : null) ||
-        "Failed to create article. Please try again.";
-      toast.error(errorMessage);
-    }
-  }, [lastResult]);
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    
-    // Validation côté client avant soumission
-    const validation = parseWithZod(formData, {
-      schema: postSchema,
-    });
-    
-    if (validation.status === "success") {
-      // Afficher le toast de succès avant la soumission
-      // (la redirection se fera après, mais le toast sera visible)
-      toast.success("Article created successfully!");
-    }
-    
-    // Toujours utiliser startTransition pour appeler l'action
-    // (requis par useActionState - React 19+ requirement)
-    startTransition(async () => {
-      await action(formData);
-    });
-  };
 
   return (
     <>
@@ -100,18 +58,10 @@ export default function ArticleCreationRoute() {
         <CardContent>
           <form
             id={form.id}
-            onSubmit={handleSubmit}
+            onSubmit={form.onSubmit}
             action={action}
-            className="flex flex-col gap-6 relative"
+            className="flex flex-col gap-6"
           >
-            {isPending && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Creating article...</p>
-                </div>
-              </div>
-            )}
             {/* Hidden fields for site and placeholders for cover image and article content */}
             <input type="hidden" name="siteId" value={siteId} />
             <input
@@ -134,7 +84,6 @@ export default function ArticleCreationRoute() {
                 key={fields.title.key}
                 defaultValue={fields.title.initialValue}
                 placeholder="Next.js blogging application"
-                disabled={isPending}
               />
               <p className="text-sm text-red-500">{fields.title.errors}</p>
             </div>
@@ -146,7 +95,6 @@ export default function ArticleCreationRoute() {
                 key={fields.slug.key}
                 defaultValue={fields.slug.initialValue}
                 placeholder="article-slug"
-                disabled={isPending}
               />
               <p className="text-sm text-red-500">{fields.slug.errors}</p>
             </div>
@@ -159,7 +107,6 @@ export default function ArticleCreationRoute() {
                 defaultValue={fields.smallDescription.initialValue}
                 placeholder="Small description for your blog article..."
                 className="h-32"
-                disabled={isPending}
               />
               <p className="text-sm text-red-500">{fields.smallDescription.errors}</p>
             </div>
@@ -177,33 +124,23 @@ export default function ArticleCreationRoute() {
                   />
                 </div>
               ) : (
-                <div className={isPending ? "pointer-events-none opacity-50" : ""}>
-                  <UploadDropzone
-                    endpoint="imageUploader"
-                    onClientUploadComplete={(res) => {
-                      if (!res || res.length === 0) return;
-                      setImageUrl(res[0].url);
-                    }}
-                    onUploadError={(error) => {
-                      console.error("Upload error", error);
-                    }}
-                  />
-                </div>
+                <UploadDropzone
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res) => {
+                    if (!res || res.length === 0) return;
+                    setImageUrl(res[0].url);
+                    toast.success("image has been uploaded");
+                  }}
+                  onUploadError={() => {
+                    toast.error("something went wrong...");
+                  }}
+                />
               )}
               <p className="text-sm text-red-500">{fields.coverImage.errors}</p>
             </div>
 
             <div>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create article"
-                )}
-              </Button>
+              <SubmitButton text="Create article" />
             </div>
 
             {/* Rich text editor will be wired to articleContent later. */}
