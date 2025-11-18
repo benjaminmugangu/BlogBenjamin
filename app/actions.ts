@@ -3,7 +3,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
-import { sitesSchemas, postSchema } from "./utils/zodSchemas";
+import { siteCreationSchema, postSchema } from "./utils/zodSchemas";
 import prisma from "./utils/db";
 // import { Prisma } from "@prisma/client"; // nécessaire pour le type unchecked
 
@@ -66,8 +66,16 @@ export async function CreateSiteAction(
 ) {
   const user = await requireUser();
 
-  const submission = parseWithZod(formData, {
-    schema: sitesSchemas,
+  const submission = await parseWithZod(formData, {
+    async: true,
+    schema: siteCreationSchema({
+      isSubdirectoryUnique: async (subdirectory: string) => {
+        const existingSite = await prisma.site.findUnique({
+          where: { subdirectory },
+        });
+        return !existingSite;
+      },
+    }),
   });
 
   if (submission.status !== "success") {
@@ -100,7 +108,8 @@ export async function CreatePostAction(prevState: unknown, formData: FormData) {
   const siteId = formData.get("siteId") as string;
 
   // Sécurisation multi-tenant : on vérifie bien que ce site appartient à cet utilisateur !
-  const site = await prisma.site.findUnique({
+  // On utilise findFirst car la combinaison (id, userId) n'est pas une clé unique déclarée dans Prisma.
+  const site = await prisma.site.findFirst({
     where: { id: siteId, userId: user.id },
   });
   if (!site) {
@@ -123,4 +132,100 @@ export async function CreatePostAction(prevState: unknown, formData: FormData) {
   });
 
   return redirect(`/dashboard/sites/${siteId}`);
+}
+
+export async function editPostAction(prevState: unknown, formData: FormData) {
+  const user = await requireUser();
+
+  const submission = parseWithZod(formData, {
+    schema: postSchema,
+  });
+
+  if (submission.status !== "success") {
+    return submission.reply();
+  }
+
+  const articleId = formData.get("articleId") as string;
+  const siteId = formData.get("siteId") as string;
+
+  await prisma.post.update({
+    where: {
+      id: articleId,
+      userId: user.id,
+    },
+    data: {
+      title: submission.value.title,
+      smallDescription: submission.value.smallDescription,
+      slug: submission.value.slug,
+      articleContent: JSON.parse(submission.value.articleContent),
+      image: submission.value.coverImage,
+    },
+  });
+
+  return redirect(`/dashboard/sites/${siteId}`);
+}
+
+export async function deletePost(formData: FormData) {
+  const user = await requireUser();
+
+  const articleId = formData.get("articleId") as string;
+  const siteId = formData.get("siteId") as string;
+
+  if (!articleId || !siteId) {
+    // Si les champs sont manquants, on renvoie simplement vers la liste des sites
+    return redirect("/dashboard/sites");
+  }
+
+  await prisma.post.delete({
+    where: {
+      id: articleId,
+      userId: user.id,
+    },
+  });
+
+  return redirect(`/dashboard/sites/${siteId}`);
+}
+
+export async function updateImage(formData: FormData) {
+  const user = await requireUser();
+
+  const siteId = formData.get("siteId") as string;
+  const imageUrl = formData.get("imageUrl") as string;
+
+  if (!siteId) {
+    // Si on n'a pas de siteId, on ne sait pas où rediriger : on renvoie vers la liste
+    return redirect("/dashboard/sites");
+  }
+
+  await prisma.site.update({
+    where: {
+      id: siteId,
+      userId: user.id,
+    },
+    data: {
+      imageUrl,
+    },
+  });
+
+  // Comme dans le tuto, on revient à la liste des sites pour voir la nouvelle image sur la card
+  return redirect("/dashboard/sites");
+}
+
+export async function deleteSite(formData: FormData) {
+  const user = await requireUser();
+
+  const siteId = formData.get("siteId") as string;
+
+  if (!siteId) {
+    return redirect("/dashboard/sites");
+  }
+
+  await prisma.site.delete({
+    where: {
+      id: siteId,
+      userId: user.id,
+    },
+  });
+
+  return redirect("/dashboard/sites");
 }

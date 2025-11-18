@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/app/components/dashboard/SubmitButton";
 import { useActionState } from "react";
-import {useForm} from "@conform-to/react";
+import { useForm } from "@conform-to/react";
 import { sitesSchemas } from "@/app/utils/zodSchemas";
 import { parseWithZod } from "@conform-to/zod";
 import { CreateSiteAction } from "@/app/actions";
@@ -73,7 +73,7 @@ export default function NewSiteRoute() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit">Submit</Button>
+                        <SubmitButton text="Create site" />
                     </CardFooter>
                 </form>
  

@@ -10,6 +10,46 @@ export const sitesSchemas = z.object({
   description: z.string().min(1, { message: "Description is required" }),
   subdirectory: z.string().min(1, { message: "Subdirectory is required" }),
 });
+
+// Schéma avancé pour la création de site avec validation asynchrone du subdirectory
+export function siteCreationSchema(options?: {
+  isSubdirectoryUnique?: (subdirectory: string) => Promise<boolean>;
+}) {
+  return z
+    .object({
+      subdirectory: z
+        .string()
+        .min(1)
+        .max(40)
+        .regex(/^[a-z]+$/, {
+          message: "Subdirectory must only use lower case letters",
+        })
+        .transform((value) => value.toLowerCase())
+        .pipe(
+          z.string().superRefine((value, ctx) => {
+            if (typeof options?.isSubdirectoryUnique !== "function") {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Undefined validation function for subdirectory",
+                fatal: true,
+              });
+              return;
+            }
+
+            return options.isSubdirectoryUnique(value).then((isUnique) => {
+              if (!isUnique) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: "Subdirectory is already taken...",
+                });
+              }
+            });
+          }),
+        ),
+      name: z.string().min(1, { message: "Name is required" }),
+      description: z.string().min(1, { message: "Description is required" }),
+    });
+}
 export const postSchema = z.object({
   title: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),

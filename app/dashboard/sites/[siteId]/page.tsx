@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Book, FileIcon, PlusCircle, Settings, MoreHorizontal } from "lucide-react";
+import { Book, PlusCircle, Settings, MoreHorizontal } from "lucide-react";
 import prisma from "@/app/utils/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
@@ -15,6 +15,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import EmptyState from "@/app/components/dashboard/EmptyState";
 
 async function getData(userId: string, siteId: string) {
   const [site, posts] = await Promise.all([
@@ -68,22 +77,22 @@ export default async function SiteRoute({
 
   return (
     <>
-      <div className="flex w-full justify-end gap-4">
-        <Button asChild variant="secondary">
+      <div className="flex w-full justify-end gap-4 flex-wrap">
+        <Button asChild variant="secondary" className="w-full sm:w-auto">
           <Link href={`/blog/${site.subdirectory}`} target="_blank">
             <Book className="size-4 mr-2" />
             View blog
           </Link>
         </Button>
 
-        <Button asChild variant="secondary">
+        <Button asChild variant="secondary" className="w-full sm:w-auto">
           <Link href={`/dashboard/sites/${siteId}/settings`}>
             <Settings className="size-4 mr-2" />
             Settings
           </Link>
         </Button>
 
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href={`/dashboard/sites/${siteId}/create`}>
             <PlusCircle className="size-4 mr-2" />
             Create article
@@ -92,17 +101,12 @@ export default async function SiteRoute({
       </div>
 
       {(!posts || posts.length === 0) ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <FileIcon className="size-6 mb-4" />
-          <h1 className="text-lg font-semibold mb-2">No articles yet</h1>
-          <p className="text-gray-500 mb-4">Create your first article to get started</p>
-          <Button asChild>
-            <Link href={`/dashboard/sites/${siteId}/create`}>
-              <PlusCircle className="size-4 mr-2" />
-              Create article
-            </Link>
-          </Button>
-        </div>
+        <EmptyState
+          title="You don't have any articles created yet"
+          description="You currently don't have any articles. Please create some so that you can see them here."
+          buttonText="Create article"
+          href={`/dashboard/sites/${siteId}/create`}
+        />
       ) : (
         <Card className="mt-5">
           <CardHeader>
@@ -112,69 +116,67 @@ export default async function SiteRoute({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-4 font-medium">Image</th>
-                    <th className="text-left p-4 font-medium">Title</th>
-                    <th className="text-left p-4 font-medium">Status</th>
-                    <th className="text-left p-4 font-medium">Created At</th>
-                    <th className="text-right p-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {posts.map((post) => (
-                    <tr key={post.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <Image
-                          src={post.image || "/default.png"}
-                          alt={post.title}
-                          width={64}
-                          height={64}
-                          className="size-16 rounded-md object-cover"
-                        />
-                      </td>
-                      <td className="p-4 font-medium">{post.title}</td>
-                      <td className="p-4">
-                        <Badge variant="outline" className="bg-green-500/10 text-green-500">
-                          Published
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        {new Intl.DateTimeFormat("en-US", {
-                          dateStyle: "medium",
-                        }).format(post.createdAt)}
-                      </td>
-                      <td className="p-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/sites/${siteId}/articles/${post.id}`}>
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/sites/${siteId}/articles/${post.id}/delete`}>
-                                Delete
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created at</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell>
+                      <Image
+                        src={post.image || "/default.png"}
+                        alt={post.title}
+                        width={64}
+                        height={64}
+                        className="size-16 rounded-md object-cover"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-green-500/10 text-green-500">
+                        Published
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Intl.DateTimeFormat("en-US", {
+                        dateStyle: "medium",
+                      }).format(post.createdAt)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/sites/${siteId}/${post.id}`}>
+                              Edit
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/sites/${siteId}/${post.id}/delete`}>
+                              Delete
+                            </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
